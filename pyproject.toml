@@ -1,19 +1,15 @@
 [build-system]
-requires = ["setuptools>=61"]
+requires = ["setuptools"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "docchat"
 version = "0.1.0"
-description = "A document-based AI chatbot"
-requires-python = ">=3.10"
-dependencies = [
-    "groq",
-    "python-dotenv",
-]
-
-[project.scripts]
-chat = "chat:repl"
+readme = "README.md"
+dependencies = ["groq", "python-dotenv"]
 
 [tool.setuptools]
 py-modules = ["chat"]
+
+[project.scripts]
+chat = "chat:repl"
