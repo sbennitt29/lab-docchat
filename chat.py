@@ -15,6 +15,13 @@ from tools.grep import grep
 load_dotenv()
 client = Groq(api_key=os.environ.get('GROQ_API_KEY'))
 
+def llm():
+    """Create and return the Groq client when it is first needed."""
+    global client
+    if client is None:
+        client = Groq(api_key=os.environ.get('GROQ_API_KEY'))
+    return client
+
 tools = [{
     'type': 'function',
     'function': {
@@ -101,6 +108,7 @@ class Chat:
     """
 
     def __init__(self, system='You are a helpful assistant.  Respond in complete sentences using plain text without Markdown formatting.'):
+        '''Initialize a Chat instance with a system prompt and conversation history.'''
         self.messages = [{'role': 'system', 'content': system}]
 
     def send_message(self, message, temperature=0.8):
@@ -242,7 +250,7 @@ class Chat:
         self.messages.append({'role': 'user', 'content': message})
 
         while True:
-            completion = client.chat.completions.create(
+            completion = llm().chat.completions.create(
                 messages=self.messages,
                 model='openai/gpt-oss-20b',
                 temperature=temperature,
