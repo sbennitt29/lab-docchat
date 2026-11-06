@@ -11,5 +11,8 @@ dependencies = ["groq", "python-dotenv"]
 [tool.setuptools]
 py-modules = ["chat"]
 
+[tool.setuptools.packages.find]
+include = ["tools*"]
+
 [project.scripts]
 chat = "chat:repl"
