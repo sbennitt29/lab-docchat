@@ -13,14 +13,26 @@ from tools.cat import cat
 from tools.grep import grep
 
 load_dotenv()
-client = Groq(api_key=os.environ.get('GROQ_API_KEY'))
+client = None
+
 
 def llm():
-    """Create and return the Groq client when it is first needed."""
+    """Create and return the Groq client when it is first needed.
+    >>> from unittest.mock import patch
+    >>> with patch('chat.Groq') as mock_groq:
+    ...     with patch('chat.client', None):
+    ...         first = llm()
+    ...         second = llm()
+    ...         print(first is second)
+    ...         print(mock_groq.call_count)
+    True
+    1
+    """
     global client
     if client is None:
         client = Groq(api_key=os.environ.get('GROQ_API_KEY'))
     return client
+
 
 tools = [{
     'type': 'function',
@@ -115,7 +127,8 @@ class Chat:
         """Send a message and retain the reply.
 
         >>> from unittest.mock import patch
-        >>> with patch.object(client.chat.completions, 'create') as request:
+        >>> with patch('chat.llm') as mock_llm:
+        ...     request = mock_llm.return_value.chat.completions.create
         ...     request.return_value.choices[0].message.content = 'Hello!'
         ...     request.return_value.choices[0].message.tool_calls = None
         ...     chat = Chat(system='Be brief.')
@@ -128,7 +141,8 @@ class Chat:
         ... ]
         >>> chat.messages == expected
         True
-        >>> with patch.object(client.chat.completions, 'create') as request:
+        >>> with patch('chat.llm') as mock_llm:
+        ...     request = mock_llm.return_value.chat.completions.create
         ...     request.return_value.choices[0].message.content = 'First reply'
         ...     request.return_value.choices[0].message.tool_calls = None
         ...     chat = Chat(system='Be brief.')
@@ -144,7 +158,8 @@ class Chat:
         >>> chat.messages[3]['content']
         'Remember me?'
         >>> with patch('builtins.input', side_effect=['Hello', 'How are you?', EOFError]):
-        ...     with patch.object(client.chat.completions, 'create') as request:
+        ...     with patch('chat.llm') as mock_llm:
+        ...         request = mock_llm.return_value.chat.completions.create
         ...         request.return_value.choices[0].message.content = 'Hi there!'
         ...         request.return_value.choices[0].message.tool_calls = None
         ...         repl(temperature=0)
@@ -156,15 +171,14 @@ class Chat:
         >>> tool_call.function.name = 'calculate'
         >>> tool_call.function.arguments = '{"expression": "2 + 3"}'
         >>> tool_call.id = '123'
-        >>> with patch.object(client.chat.completions, 'create') as request:
-        ...     request.return_value.choices[0].message.tool_calls = [tool_call]
         >>> first_response = MagicMock()
         >>> first_response.choices[0].message.tool_calls = [tool_call]
 
         >>> second_response = MagicMock()
         >>> second_response.choices[0].message.tool_calls = None
         >>> second_response.choices[0].message.content = 'The answer is 5.'
-        >>> with patch.object(client.chat.completions, 'create') as request:
+        >>> with patch('chat.llm') as mock_llm:
+        ...     request = mock_llm.return_value.chat.completions.create
         ...     request.side_effect = [first_response, second_response]
         ...     chat = Chat()
         ...     result = chat.send_message('What is 2 + 3?', temperature=0)
@@ -183,7 +197,8 @@ class Chat:
         >>> ls_second_response = MagicMock()
         >>> ls_second_response.choices[0].message.tool_calls = None
         >>> ls_second_response.choices[0].message.content = 'Here are the files in the current directory.'
-        >>> with patch.object(client.chat.completions, 'create') as request:
+        >>> with patch('chat.llm') as mock_llm:
+        ...     request = mock_llm.return_value.chat.completions.create
         ...     request.side_effect = [ls_first_response, ls_second_response]
         ...     chat = Chat()
         ...     result = chat.send_message('What files are in the current directory?', temperature=0)
@@ -201,7 +216,8 @@ class Chat:
         >>> cat_second_response = MagicMock()
         >>> cat_second_response.choices[0].message.tool_calls = None
         >>> cat_second_response.choices[0].message.content = 'Here are the contents of notes.txt.'
-        >>> with patch.object(client.chat.completions, 'create') as request:
+        >>> with patch('chat.llm') as mock_llm:
+        ...     request = mock_llm.return_value.chat.completions.create
         ...     request.side_effect = [cat_first_response, cat_second_response]
         ...     chat = Chat()
         ...     result = chat.send_message('What is in notes.txt?', temperature=0)
@@ -219,7 +235,8 @@ class Chat:
         >>> grep_second_response = MagicMock()
         >>> grep_second_response.choices[0].message.tool_calls = None
         >>> grep_second_response.choices[0].message.content = 'Here are the lines matching the regex in chat.py.'
-        >>> with patch.object(client.chat.completions, 'create') as request:
+        >>> with patch('chat.llm') as mock_llm:
+        ...     request = mock_llm.return_value.chat.completions.create
         ...     request.side_effect = [grep_first_response, grep_second_response]
         ...     chat = Chat()
         ...     result = chat.send_message('What lines in chat.py match the regex "def repl"?', temperature=0)
@@ -237,7 +254,8 @@ class Chat:
         >>> unknown_second_response = MagicMock()
         >>> unknown_second_response.choices[0].message.tool_calls = None
         >>> unknown_second_response.choices[0].message.content = 'Unknown tool requested.'
-        >>> with patch.object(client.chat.completions, 'create') as request:
+        >>> with patch('chat.llm') as mock_llm:
+        ...     request = mock_llm.return_value.chat.completions.create
         ...     request.side_effect = [unknown_first_response, unknown_second_response]
         ...     chat = Chat()
         ...     result = chat.send_message('Use an unknown tool.', temperature=0)
@@ -296,7 +314,8 @@ def repl(temperature=0.8):
 
     >>> from unittest.mock import patch
     >>> with patch('builtins.input', side_effect=['Hello', EOFError]):
-    ...     with patch.object(client.chat.completions, 'create') as request:
+    ...     with patch('chat.llm') as mock_llm:
+    ...         request = mock_llm.return_value.chat.completions.create
     ...         request.return_value.choices[0].message.content = 'Hi there!'
     ...         request.return_value.choices[0].message.tool_calls = None
     ...         repl(temperature=0)
@@ -306,7 +325,8 @@ def repl(temperature=0.8):
     ...     repl(temperature=0)
     <BLANKLINE>
     >>> with patch('builtins.input', side_effect=['Hello', 'How are you?', EOFError]):
-    ...     with patch.object(client.chat.completions, 'create') as request:
+    ...     with patch('chat.llm') as mock_llm:
+    ...         request = mock_llm.return_value.chat.completions.create
     ...         request.return_value.choices[0].message.content = 'Hi there!'
     ...         request.return_value.choices[0].message.tool_calls = None
     ...         repl(temperature=0)
@@ -321,14 +341,16 @@ def repl(temperature=0.8):
     5
     <BLANKLINE>
     >>> with patch('builtins.input', side_effect=['/ls nonexistent_directory', EOFError]):
-    ...     with patch.object(client.chat.completions, 'create') as request:
+    ...     with patch('chat.llm') as mock_llm:
+    ...         request = mock_llm.return_value.chat.completions.create
     ...         repl(temperature=0)
     ...         print(request.call_count)
     []
     <BLANKLINE>
     0
     >>> with patch('builtins.input', side_effect=['/calculate 2 + 3', 'What was my calculation?', EOFError]):
-    ...     with patch.object(client.chat.completions, 'create') as request:
+    ...     with patch('chat.llm') as mock_llm:
+    ...         request = mock_llm.return_value.chat.completions.create
     ...         request.return_value.choices[0].message.content = 'Your calculation was 2 + 3 = 5.'
     ...         request.return_value.choices[0].message.tool_calls = None
     ...         repl(temperature=0)
