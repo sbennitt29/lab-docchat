@@ -460,7 +460,14 @@ def repl(temperature=0.8, debug=False):
 
 
 def main():
-    """Run the chatbot from the command line."""
+    """
+    Run the chatbot from the command line.
+
+    >>> from unittest.mock import patch
+    >>> with patch('sys.argv', ['chat.py']), patch('chat.repl') as mock_repl:
+    ...     main()
+    ...     mock_repl.assert_called_once_with()
+    """
     if '--debug' in sys.argv[1:]:
         repl(debug=True)
     elif len(sys.argv) > 1:
