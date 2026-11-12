@@ -10,9 +10,9 @@ dependencies = ["groq", "python-dotenv"]
 
 [tool.setuptools]
 py-modules = ["chat"]
-
-[tool.setuptools.packages.find]
-include = ["tools*"]
+packages = ["tools"]
+[tool.setuptools.package-dir]
+"" = "."
 
 [project.scripts]
-chat = "chat:repl"
+chat = "chat:main"

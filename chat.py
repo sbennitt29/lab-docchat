@@ -11,6 +11,7 @@ from tools.calculate import calculate
 from tools.ls import ls
 from tools.cat import cat
 from tools.grep import grep
+import sys
 
 load_dotenv()
 client = None
@@ -123,7 +124,7 @@ class Chat:
         '''Initialize a Chat instance with a system prompt and conversation history.'''
         self.messages = [{'role': 'system', 'content': system}]
 
-    def send_message(self, message, temperature=0.8):
+    def send_message(self, message, temperature=0.8, debug=False):
         """Send a message and retain the reply.
 
         >>> from unittest.mock import patch
@@ -290,6 +291,10 @@ class Chat:
             for tool_call in assistant_message.tool_calls:
                 arguments = json.loads(tool_call.function.arguments)
 
+                if debug:
+                    print(f"Tool: {tool_call.function.name}, Arguments: {arguments}")
+
+
                 if tool_call.function.name == 'calculate':
                     result = calculate(arguments['expression'])
                 elif tool_call.function.name == 'ls':
@@ -308,7 +313,7 @@ class Chat:
                 })
 
 
-def repl(temperature=0.8):
+def repl(temperature=0.8, debug=False):
     """
     Run an interactive chat session.
 
@@ -397,8 +402,9 @@ def repl(temperature=0.8):
     ['chat.py']
     <BLANKLINE>
     >>> import runpy
-    >>> with patch('builtins.input', side_effect=[EOFError]):
-    ...     _ = runpy.run_path('chat.py', run_name='__main__')
+    >>> with patch('sys.argv', ['chat.py']):
+    ...     with patch('builtins.input', side_effect=[EOFError]):
+    ...         _ = runpy.run_path('chat.py', run_name='__main__')
     <BLANKLINE>
     """
     chat = Chat()
@@ -448,10 +454,22 @@ def repl(temperature=0.8):
                 })
                 print(result)
             else:
-                print(chat.send_message(user_input, temperature=temperature))
+                print(chat.send_message(user_input, temperature=temperature, debug=debug))
     except (KeyboardInterrupt, EOFError):
         print()
 
 
+def main():
+    """Run the chatbot from the command line."""
+    if '--debug' in sys.argv[1:]:
+        repl(debug=True)
+    elif len(sys.argv) > 1:
+        message = ' '.join(sys.argv[1:])
+        chat = Chat()
+        print(chat.send_message(message))
+    else:
+        repl()
+
+
 if __name__ == '__main__':
-    repl()
+    main()
