@@ -1,10 +1,26 @@
+"""Load local PNG images into chatbot conversations."""
+
 import base64
 from pathlib import Path
 
 
 def load_image(chat, path):
-    """Add a local PNG image to the chat history."""
+    """
+    Add a local PNG image to the chat history.
 
+    Reject absolute paths and parent-directory references.
+
+    >>> from unittest.mock import MagicMock
+    >>> chat = MagicMock()
+    >>> chat.messages = []
+    >>> try:
+    ...     load_image(chat, '../image.png')
+    ... except ValueError:
+    ...     print('Invalid path')
+    Invalid path
+    >>> chat.messages
+    []
+    """
     image_path = Path(path)
 
     # Reject absolute paths and parent-directory references

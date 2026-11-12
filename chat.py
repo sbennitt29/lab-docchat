@@ -293,8 +293,6 @@ class Chat:
 
                 if debug:
                     print(f"Tool: {tool_call.function.name}, Arguments: {arguments}")
-
-
                 if tool_call.function.name == 'calculate':
                     result = calculate(arguments['expression'])
                 elif tool_call.function.name == 'ls':
