@@ -89,3 +89,48 @@ The repository includes static practice HTML pages because live eBay requests re
 ```
 
 This demonstration shows how DocChat can explain a web-scraping project, including its data extraction process and JSON output.
+
+## Agent Repair Example
+
+I tested the agent on the provided repair project, which contained
+a failing doctest in `totals.py`.
+
+### Prompt
+
+Use the cat tool to read totals.py. Use the doctests tool to
+identify the failing test. Fix the function using the write_file
+tool, keeping the existing doctest unchanged. Verify that the
+doctest passes.
+
+### Agent Edit
+
+The agent used the `cat` tool to read the file and the
+`write_file` tool to correct the tax calculation.
+
+Before:
+
+```python
+return round(sum(prices) + tax_rate, 2)
+```
+
+After:
+
+```python
+return round(sum(prices) * (1 + tax_rate), 2)
+```
+
+### Test Results
+
+Before the edit, the doctest expected 33.0 but returned 30.1.
+
+After the edit, the original doctest passed without modification.
+
+- Before: 0 passed, 1 failed.
+- After: 1 passed, 0 failed.
+
+### Git Commit
+
+The agent automatically created the following commit:
+
+- Commit: `1185cc8`
+- Message: `[docchat] Fix total_with_tax calculation`
