@@ -92,20 +92,15 @@ This demonstration shows how DocChat can explain a web-scraping project, includi
 
 ## Agent Repair Example
 
-I tested the agent on the provided repair project, which contained
-a failing doctest in `totals.py`.
+I tested the agent on the provided repair project, which contained a failing doctest in `totals.py`.
 
 ### Prompt
 
-Use the cat tool to read totals.py. Use the doctests tool to
-identify the failing test. Fix the function using the write_file
-tool, keeping the existing doctest unchanged. Verify that the
-doctest passes.
+Use the cat tool to read totals.py. Use the doctests tool to identify the failing test. Fix the function using the write_file tool, keeping the existing doctest unchanged. Verify that the doctest passes.
 
 ### Agent Edit
 
-The agent used the `cat` tool to read the file and the
-`write_file` tool to correct the tax calculation.
+The agent used the `cat` tool to read the file and the `write_file` tool to correct the tax calculation.
 
 Before:
 
