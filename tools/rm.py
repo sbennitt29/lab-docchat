@@ -7,7 +7,13 @@ from tools.ls import is_path_safe
 
 
 def rm(path):
-    """Delete matching files and make one Git commit."""
+    """Delete matching files and make one Git commit.
+
+    >>> rm('../*.txt')
+    'Error: Unsafe path.'
+    >>> rm('/tmp/*.txt')
+    'Error: Unsafe path.'
+    """
     if not is_path_safe(path):
         return "Error: Unsafe path."
 

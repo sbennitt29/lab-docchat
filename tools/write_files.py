@@ -7,7 +7,13 @@ from tools.doctests import doctests
 
 
 def write_files(files, commit_message):
-    """Write files, make one Git commit, and return doctest reports."""
+    """Write files, make one Git commit, and return doctest reports.
+
+    >>> write_files([{'path': '../secret.txt', 'contents': 'hello'}], 'Test')
+    'Error: Unsafe path.'
+    >>> write_files([{'path': '/tmp/example.txt', 'contents': 'hello'}], 'Test')
+    'Error: Unsafe path.'
+    """
     for file in files:
         if not is_path_safe(file['path']):
             return "Error: Unsafe path."

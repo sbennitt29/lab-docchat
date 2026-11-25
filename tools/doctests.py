@@ -6,7 +6,13 @@ from tools.ls import is_path_safe
 
 
 def doctests(path):
-    """Run verbose doctests and return their output."""
+    """Run verbose doctests and return their output.
+    
+    >>> doctests('../secret.py')
+    'Error: Unsafe path.'
+    >>> doctests('/tmp/example.py')
+    'Error: Unsafe path.'
+    """
     if not is_path_safe(path):
         return "Error: Unsafe path."
 
