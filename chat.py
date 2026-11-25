@@ -11,6 +11,10 @@ from tools.calculate import calculate
 from tools.ls import ls
 from tools.cat import cat
 from tools.grep import grep
+from tools.doctests import doctests
+from tools.write_file import write_file
+from tools.write_files import write_files
+from tools.rm import rm
 import sys
 import git
 
@@ -36,78 +40,170 @@ def llm():
     return client
 
 
-tools = [{
-    'type': 'function',
-    'function': {
-        'name': 'calculate',
-        'description': 'Calculate a mathematical expression.',
-        'parameters': {
-            'type': 'object',
-            'properties': {
-                'expression': {
-                    'type': 'string',
-                    'description': 'The mathematical expression to calculate.'
-                }
-            },
-            'required': ['expression']
-        }
-    }
-},
+tools = [
     {
-    'type': 'function',
-    'function': {
-        'name': 'ls',
-        'description': "List files in a directory. When the user asks to list files without specifying a path, or refers to the current directory, always use '.' as the path. Do not use '/' unless explicitly requested.",
-        'parameters': {
-            'type': 'object',
-            'properties': {
-                'path': {
-                    'type': 'string',
-                    'description': 'The path to the directory to list.'
-                }
-            },
-            'required': []
-        }
-    }
-},
-    {
-    'type': 'function',
-    'function': {
-        'name': 'cat',
-        'description': 'Read the contents of a file.',
-        'parameters': {
-            'type': 'object',
-            'properties': {
-                'file': {
-                    'type': 'string',
-                    'description': 'The path to the file to read.'
-                }
-            },
-            'required': ['file']
-        }
-    }
-},
-    {
-    'type': 'function',
-    'function': {
-        'name': 'grep',
-        'description': 'Search for a regex pattern in files matching the given path.',
-        'parameters': {
-            'type': 'object',
-            'properties': {
-                'regex': {
-                    'type': 'string',
-                    'description': 'The regex pattern to search for.'
+        'type': 'function',
+        'function': {
+            'name': 'calculate',
+            'description': 'Calculate a mathematical expression.',
+            'parameters': {
+                'type': 'object',
+                'properties': {
+                    'expression': {
+                        'type': 'string',
+                        'description': 'The mathematical expression to calculate.'
+                    }
                 },
-                'path': {
-                    'type': 'string',
-                    'description': 'The path to search in.'
-                }
-            },
-            'required': ['regex', 'path']
+                'required': ['expression']
+            }
+        }
+    },
+    {
+        'type': 'function',
+        'function': {
+            'name': 'ls',
+            'description': "List files in a directory. When the user asks to list files without specifying a path, or refers to the current directory, always use '.' as the path. Do not use '/' unless explicitly requested.",
+            'parameters': {
+                'type': 'object',
+                'properties': {
+                    'path': {
+                        'type': 'string',
+                        'description': 'The path to the directory to list.'
+                    }
+                },
+                'required': []
+            }
+        }
+    },
+    {
+        'type': 'function',
+        'function': {
+            'name': 'cat',
+            'description': 'Read the contents of a file.',
+            'parameters': {
+                'type': 'object',
+                'properties': {
+                    'file': {
+                        'type': 'string',
+                        'description': 'The path to the file to read.'
+                    }
+                },
+                'required': ['file']
+            }
+        }
+    },
+    {
+        'type': 'function',
+        'function': {
+            'name': 'grep',
+            'description': 'Search for a regex pattern in files matching the given path.',
+            'parameters': {
+                'type': 'object',
+                'properties': {
+                    'regex': {
+                        'type': 'string',
+                        'description': 'The regex pattern to search for.'
+                    },
+                    'path': {
+                        'type': 'string',
+                        'description': 'The path to search in.'
+                    }
+                },
+                'required': ['regex', 'path']
+            }
+        }
+    },
+    {
+        'type': 'function',
+        'function': {
+            'name': 'doctests',
+            'description': 'Run verbose doctests on a Python file.',
+            'parameters': {
+                'type': 'object',
+                'properties': {
+                    'path': {
+                        'type': 'string',
+                        'description': 'The Python file to test.'
+                    }
+                },
+                'required': ['path']
+            }
+        }
+    },
+    {
+        'type': 'function',
+        'function': {
+            'name': 'write_file',
+            'description': 'Write a file, commit the change, and run doctests if it is Python.',
+            'parameters': {
+                'type': 'object',
+                'properties': {
+                    'path': {
+                        'type': 'string',
+                        'description': 'The file path.'
+                    },
+                    'contents': {
+                        'type': 'string',
+                        'description': 'The new contents of the file.'
+                    },
+                    'commit_message': {
+                        'type': 'string',
+                        'description': 'The Git commit message.'
+                    }
+                },
+                'required': ['path', 'contents', 'commit_message']
+            }
+        }
+    },
+    {
+        'type': 'function',
+        'function': {
+            'name': 'write_files',
+            'description': 'Write multiple files, make one commit, and run Python doctests.',
+            'parameters': {
+                'type': 'object',
+                'properties': {
+                    'files': {
+                        'type': 'array',
+                        'items': {
+                            'type': 'object',
+                            'properties': {
+                                'path': {
+                                    'type': 'string'
+                                },
+                                'contents': {
+                                    'type': 'string'
+                                }
+                            },
+                            'required': ['path', 'contents']
+                        }
+                    },
+                    'commit_message': {
+                        'type': 'string',
+                        'description': 'The Git commit message.'
+                    }
+                },
+                'required': ['files', 'commit_message']
+            }
+        }
+    },
+    {
+        'type': 'function',
+        'function': {
+            'name': 'rm',
+            'description': 'Delete files matching a path or glob and commit the deletion.',
+            'parameters': {
+                'type': 'object',
+                'properties': {
+                    'path': {
+                        'type': 'string',
+                        'description': 'The file path or glob pattern.'
+                    }
+                },
+                'required': ['path']
+            }
         }
     }
-}
 ]
 
 
@@ -307,6 +403,21 @@ class Chat:
                     result = cat(arguments['file'])
                 elif tool_call.function.name == 'grep':
                     result = grep(arguments['regex'], arguments['path'])
+                elif tool_call.function.name == 'doctests':
+                    result = doctests(arguments['path'])
+                elif tool_call.function.name == 'write_file':
+                    result = write_file(
+                        arguments['path'],
+                        arguments['contents'],
+                        arguments['commit_message']
+                    )
+                elif tool_call.function.name == 'write_files':
+                    result = write_files(
+                        arguments['files'],
+                        arguments['commit_message']
+                    )
+                elif tool_call.function.name == 'rm':
+                    result = rm(arguments['path'])
                 else:
                     result = 'Error: Unknown tool.'
 
