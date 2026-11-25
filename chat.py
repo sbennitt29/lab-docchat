@@ -134,7 +134,7 @@ tools = [
         'type': 'function',
         'function': {
             'name': 'write_file',
-            'description': 'Write a file, commit the change, and run doctests if it is Python.',
+            'description': 'Write or patch a file, commit the change, and run Python doctests.',
             'parameters': {
                 'type': 'object',
                 'properties': {
@@ -144,14 +144,18 @@ tools = [
                     },
                     'contents': {
                         'type': 'string',
-                        'description': 'The new contents of the file.'
+                        'description': 'The complete new contents of the file.'
+                    },
+                    'diff': {
+                        'type': 'string',
+                        'description': 'Unified diff. Provide either contents or diff, not both.'
                     },
                     'commit_message': {
                         'type': 'string',
                         'description': 'The Git commit message.'
                     }
                 },
-                'required': ['path', 'contents', 'commit_message']
+                'required': ['path', 'commit_message']
             }
         }
     },
@@ -159,7 +163,7 @@ tools = [
         'type': 'function',
         'function': {
             'name': 'write_files',
-            'description': 'Write multiple files, make one commit, and run Python doctests.',
+            'description': 'Write or patch multiple files, make one commit, and run Python doctests.',
             'parameters': {
                 'type': 'object',
                 'properties': {
@@ -173,9 +177,13 @@ tools = [
                                 },
                                 'contents': {
                                     'type': 'string'
+                                },
+                                'diff': {
+                                    'type': 'string',
+                                    'description': 'Provide either contents or diff, not both.'
                                 }
                             },
-                            'required': ['path', 'contents']
+                            'required': ['path']
                         }
                     },
                     'commit_message': {
@@ -407,9 +415,10 @@ class Chat:
                     result = doctests(arguments['path'])
                 elif tool_call.function.name == 'write_file':
                     result = write_file(
-                        arguments['path'],
-                        arguments['contents'],
-                        arguments['commit_message']
+                        path=arguments['path'],
+                        contents=arguments.get('contents'),
+                        commit_message=arguments['commit_message'],
+                        diff=arguments.get('diff')
                     )
                 elif tool_call.function.name == 'write_files':
                     result = write_files(
