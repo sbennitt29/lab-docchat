@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "docchat"
 version = "0.1.0"
 readme = "README.md"
-dependencies = ["groq", "python-dotenv"]
+dependencies = ["groq", "python-dotenv", "gitpython"]
 
 [tool.setuptools]
 py-modules = ["chat"]

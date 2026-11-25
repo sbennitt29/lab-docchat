@@ -12,6 +12,7 @@ from tools.ls import ls
 from tools.cat import cat
 from tools.grep import grep
 import sys
+import git
 
 load_dotenv()
 client = None
@@ -123,6 +124,11 @@ class Chat:
     def __init__(self, system='You are a helpful assistant.  Respond in complete sentences using plain text without Markdown formatting.'):
         '''Initialize a Chat instance with a system prompt and conversation history.'''
         self.messages = [{'role': 'system', 'content': system}]
+        if os.path.isfile('AGENTS.md'):
+            self.messages.append({
+                'role': 'system',
+                'content': str(cat('AGENTS.md'))
+            })
 
     def send_message(self, message, temperature=0.8, debug=False):
         """Send a message and retain the reply.
@@ -457,6 +463,26 @@ def repl(temperature=0.8, debug=False):
         print()
 
 
+def check_git_root():
+    """Check that the current directory is the root of a Git working tree."""
+    try:
+        repo = git.Repo(os.getcwd())
+
+        if repo.bare or repo.working_tree_dir is None:
+            print("Error: Not a Git working tree.")
+            return False
+
+        if os.path.realpath(repo.working_tree_dir) != os.path.realpath(os.getcwd()):
+            print("Error: Run chat from the root of a Git working tree.")
+            return False
+
+        return True
+
+    except (git.InvalidGitRepositoryError, git.NoSuchPathError):
+        print("Error: Run chat from the root of a Git working tree.")
+        return False
+
+
 def main():
     """
     Run the chatbot from the command line.
@@ -466,6 +492,8 @@ def main():
     ...     main()
     ...     mock_repl.assert_called_once_with()
     """
+    if not check_git_root():
+        sys.exit(1)
     if '--debug' in sys.argv[1:]:
         repl(debug=True)
     elif len(sys.argv) > 1:
