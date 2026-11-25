@@ -11,7 +11,14 @@ import importlib.util
 
 
 def get_examples(contents):
-    """Extract doctest examples and expected answers from docstrings."""
+    '''Extract doctest examples and expected answers from docstrings.
+
+    >>> get_examples('x = 5') == Counter()
+    True
+    >>> source = '"""\\n>>> 2 + 2\\n4\\n"""'
+    >>> get_examples(source) == Counter({('2 + 2\\n', '4\\n'): 1})
+    True
+    '''
     tree = ast.parse(contents)
     parser = doctest.DocTestParser()
     examples = Counter()
